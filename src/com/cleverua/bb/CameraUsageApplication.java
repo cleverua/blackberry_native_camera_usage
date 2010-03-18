@@ -30,6 +30,7 @@ public class CameraUsageApplication extends UiApplication {
     public static void setFileSystemJournalListenerEnabled(boolean enabled) {
         if (enabled) {
             filesystemListener.resetFile();
+            filesystemListener.resetStoredUSN();
             UiApplication.getUiApplication().addFileSystemJournalListener(
                     filesystemListener);
         } else {

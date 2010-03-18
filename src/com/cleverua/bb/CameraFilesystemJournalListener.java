@@ -6,22 +6,23 @@ import net.rim.device.api.io.file.FileSystemJournalListener;
 import net.rim.device.api.system.Characters;
 import net.rim.device.api.system.EventInjector;
 import net.rim.device.api.ui.Keypad;
-import net.rim.device.api.ui.UiApplication;
 
 public class CameraFilesystemJournalListener implements FileSystemJournalListener {
 
     private static final String FILE_PREFIX = "file://";
-    private static long myStoredUSN = 0;
+    
+    private static final String[] IMAGE_EXTENSIONS = { ".jpg", ".jpeg" };
+    
+    private long storedUSN = 0;
     private String file = null;
-    private static final String[] IMAGE_EXTENSIONS = {".jpg", ".jpeg", "png"};
 
-    public CameraFilesystemJournalListener() {
-        // myStoredUSN = 0;
-    }
+    public CameraFilesystemJournalListener() {}
 
     public void fileJournalChanged() {
+        if (file != null) { return; } // we've already detected one, so no need to do it again
+        
         long nextUSN = FileSystemJournal.getNextUSN();
-        for (long lookUSN = nextUSN - 1; lookUSN >= myStoredUSN; lookUSN--) {
+        for (long lookUSN = nextUSN - 1; lookUSN >= storedUSN; lookUSN--) {
             FileSystemJournalEntry entry = FileSystemJournal.getEntry(lookUSN);
 
             if (entry == null) {
@@ -33,30 +34,24 @@ public class CameraFilesystemJournalListener implements FileSystemJournalListene
 
             if (path != null) {
                 if (isValidExtension(path)) {
-                    switch (entry.getEvent()) {
-                        case FileSystemJournalEntry.FILE_ADDED:
-                            if(!path.startsWith(Constants.WORKING_DIR)) {
-                                // picture was taken or added
-                                file = path;
-
-                                // emulateEscapeKeyPressed();
-
-                                UiApplication.getUiApplication().requestForeground();
-                            }
+                    if (entry.getEvent() == FileSystemJournalEntry.FILE_ADDED) {
+                        if (!path.startsWith(Constants.WORKING_DIR)) {
+                            // picture was taken or added
+                            file = path;
                             break;
-                        case FileSystemJournalEntry.FILE_DELETED:
-                            // picture was removed
-                            if(path.equals(file)) {
-                                file = null;
-                            }
-                            break;
+                        }
                     }
                 }
             }
         }
-        myStoredUSN = nextUSN;
+        
+        storedUSN = nextUSN;
+        
+        if (file != null) { // means image file has just been detected
+            closeCamera();
+        }
     }
-
+    
     public String getFile() {
         return file;
     }
@@ -64,23 +59,35 @@ public class CameraFilesystemJournalListener implements FileSystemJournalListene
     public void resetFile() {
         file = null;
     }
+    
+    public void resetStoredUSN() {
+        storedUSN = FileSystemJournal.getNextUSN();
+    }
 
     private boolean isValidExtension(String filename) {
-        for(int i = 0; i < IMAGE_EXTENSIONS.length; i++) {
-            if(filename.toLowerCase().endsWith(IMAGE_EXTENSIONS[i])) {
+        for (int i = 0; i < IMAGE_EXTENSIONS.length; i++) {
+            if (filename.toLowerCase().endsWith(IMAGE_EXTENSIONS[i])) {
                 return true;
             }
         }
         return false;
     }
 
-    private void emulateEscapeKeyPressed() {
-        // going to emulate Escape key pressed - this closes camera viewfinder screen
-        EventInjector.invokeEvent(new EventInjector.KeyEvent(EventInjector.KeyCodeEvent.KEY_DOWN, Characters.ESCAPE, Keypad.status(Keypad.KEY_ESCAPE)));
-        EventInjector.invokeEvent(new EventInjector.KeyEvent(EventInjector.KeyCodeEvent.KEY_UP, Characters.ESCAPE, Keypad.status(Keypad.KEY_ESCAPE)));
+    private void closeCamera() {
+        emulateEscKeyPressed(); // this closes camera viewfinder screen
+        emulateEscKeyPressed(); // now this closes camera preview screen
+    }
+    
+    private void emulateEscKeyPressed() {
+        postEscKeyEvent(EventInjector.KeyCodeEvent.KEY_DOWN);
+        postEscKeyEvent(EventInjector.KeyCodeEvent.KEY_UP);
+    }
 
-        // going to emulate Escape key pressed again - this now closes camera preview screen
-        EventInjector.invokeEvent(new EventInjector.KeyEvent(EventInjector.KeyCodeEvent.KEY_DOWN, Characters.ESCAPE, Keypad.status(Keypad.KEY_ESCAPE)));
-        EventInjector.invokeEvent(new EventInjector.KeyEvent(EventInjector.KeyCodeEvent.KEY_UP, Characters.ESCAPE, Keypad.status(Keypad.KEY_ESCAPE)));
+    private void postEscKeyEvent(int keyCodeEvent) {
+        EventInjector.invokeEvent(
+            new EventInjector.KeyEvent(
+                keyCodeEvent, Characters.ESCAPE, Keypad.status(Keypad.KEY_ESCAPE)
+            )
+        );
     }
 }
