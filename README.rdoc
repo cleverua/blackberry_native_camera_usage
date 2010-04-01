@@ -23,6 +23,7 @@ This sample Blackberry application demonstrates an approach for native BlackBerr
   
 === Enable filesystemListener after native camera application is started and disable after picture is taken:
 
+
 ==== Method to enable/disable listener:
 
   public static void setFileSystemJournalListenerEnabled(boolean enabled) {
@@ -36,10 +37,12 @@ This sample Blackberry application demonstrates an approach for native BlackBerr
   }
 
 
+
 ==== Enable listener before camera is started:
  
   CameraUsageApplication.setFileSystemJournalListenerEnabled(true);
   Invoke.invokeApplication(Invoke.APP_TYPE_CAMERA, new CameraArguments());
+
 
 ==== Disable listener after camera application was closed and check if there was image taken.
 
