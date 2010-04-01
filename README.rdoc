@@ -1,0 +1,69 @@
+== DESCRIPTION
+
+This sample Blackberry application demonstrates an approach for native BlackBerry camera usage.
+
+== USAGE
+
+=== Define your working directory path to store images that will be taken by camera:
+
+  public static final String WORKING_DIR = "file:///SDCard/camera_demo";
+
+=== Define CameraFileSystemJournalListener object:
+  
+  public class CameraUsageApplication extends UiApplication {
+    ...
+
+    private static CameraFilesystemJournalListener filesystemListener;
+
+    ...
+
+    filesystemListener = new CameraFilesystemJournalListener();
+
+  }
+  
+=== Enable filesystemListener after native camera application is started and disable after picture is taken:
+
+==== Method to enable/disable listener:
+
+  public static void setFileSystemJournalListenerEnabled(boolean enabled) {
+    if (enabled) {
+      filesystemListener.resetFileName();
+      filesystemListener.resetStoredUSN();
+      UiApplication.getUiApplication().addFileSystemJournalListener(filesystemListener);
+    } else {
+      UiApplication.getUiApplication().removeFileSystemJournalListener(filesystemListener);
+    }
+  }
+
+
+==== Enable listener before camera is started:
+ 
+  CameraUsageApplication.setFileSystemJournalListenerEnabled(true);
+  Invoke.invokeApplication(Invoke.APP_TYPE_CAMERA, new CameraArguments());
+
+==== Disable listener after camera application was closed and check if there was image taken.
+
+For example inside the activate() method of the application:
+
+  public void activate() {
+
+    if (filesystemListener != null) {
+      setFileSystemJournalListenerEnabled(false);
+            
+      String imageFileName = filesystemListener.getFileName();  // going to see if we have image taken
+                
+      if (StringUtils.isNotBlank(imageFileName)) {
+
+        // perform some action with image taken
+
+      }            
+    }
+    repaint();
+    super.activate();
+  }
+
+
+== EXAMPLES
+
+To see an example of native BlackBerry camera usage please launch CameraUsageApplication in BlackBerry device simulator.
+

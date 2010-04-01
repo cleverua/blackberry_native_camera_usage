@@ -29,7 +29,7 @@ public class CameraUsageApplication extends UiApplication {
     
     public static void setFileSystemJournalListenerEnabled(boolean enabled) {
         if (enabled) {
-            filesystemListener.resetFile();
+            filesystemListener.resetFileName();
             filesystemListener.resetStoredUSN();
             UiApplication.getUiApplication().addFileSystemJournalListener(
                     filesystemListener);
@@ -49,21 +49,14 @@ public class CameraUsageApplication extends UiApplication {
                                          * happens when it renders the splash
                                          * screen
                                          */) {
-            try {
-                setFileSystemJournalListenerEnabled(false);
-            } catch (Exception e) { /* n/a */
-            }
+            setFileSystemJournalListenerEnabled(false);
 
-            try {
-                // activate: going to see if we have image taken
-                String image = filesystemListener.getFile();
-                
-                if (StringUtils.isNotBlank(image)) {
-                    // perform some action with image taken
-                    new ProcessImageTakenAction(image, cameraUsageScreen).perform();
-                }
-            } finally {
-                filesystemListener.resetFile();
+            // activate: going to see if we have image taken
+            String imageFileName = filesystemListener.getFileName();
+
+            if (StringUtils.isNotBlank(imageFileName)) {
+                // perform some action with image taken
+                new ProcessImageTakenAction(imageFileName, cameraUsageScreen).perform();
             }
         }
         repaint();

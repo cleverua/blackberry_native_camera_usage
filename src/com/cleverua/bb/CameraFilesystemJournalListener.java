@@ -14,12 +14,13 @@ public class CameraFilesystemJournalListener implements FileSystemJournalListene
     private static final String[] IMAGE_EXTENSIONS = { ".jpg", ".jpeg" };
     
     private long storedUSN = 0;
-    private String file = null;
+    private String fileName = null;
 
-    public CameraFilesystemJournalListener() {}
+    public CameraFilesystemJournalListener() {
+    }
 
     public void fileJournalChanged() {
-        if (file != null) { return; } // we've already detected one, so no need to do it again
+        if (fileName != null) { return; } // we've already detected one, so no need to do it again
         
         long nextUSN = FileSystemJournal.getNextUSN();
         for (long lookUSN = nextUSN - 1; lookUSN >= storedUSN; lookUSN--) {
@@ -37,7 +38,7 @@ public class CameraFilesystemJournalListener implements FileSystemJournalListene
                     if (entry.getEvent() == FileSystemJournalEntry.FILE_ADDED) {
                         if (!path.startsWith(Constants.WORKING_DIR)) {
                             // picture was taken or added
-                            file = path;
+                            fileName = path;
                             break;
                         }
                     }
@@ -47,17 +48,23 @@ public class CameraFilesystemJournalListener implements FileSystemJournalListene
         
         storedUSN = nextUSN;
         
-        if (file != null) { // means image file has just been detected
+        if (fileName != null) { // means image file has just been detected
             closeCamera();
         }
     }
     
-    public String getFile() {
-        return file;
+    /**
+     * Returns the file name of image taken 
+     */
+    public String getFileName() {
+        return fileName;
     }
 
-    public void resetFile() {
-        file = null;
+    /**
+     * Resets the file name of image taken 
+     */
+    public void resetFileName() {
+        fileName = null;
     }
     
     public void resetStoredUSN() {
