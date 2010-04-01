@@ -68,5 +68,5 @@ For example inside the activate() method of the application:
 
 == EXAMPLES
 
-To see an example of native BlackBerry camera usage please launch CameraUsageApplication in BlackBerry device simulator.
+To see an example of native BlackBerry camera usage please launch CameraUsageApplication in your BlackBerry device simulator.
 
