@@ -442,6 +442,9 @@ public class IOUtils {
 			byte[] data = new byte[(int) fc.fileSize()];
 			in.read(data);
 
+			safelyCloseStream(in);
+            safelyCloseStream(fc);
+			
 			EncodedImage eImage = EncodedImage.createEncodedImage(data, 0,
 					data.length);
 
